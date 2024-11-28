@@ -31,6 +31,7 @@ Uint32 lock_timeout = 0;
 int start_locking_timer = 1;
 
 char score[] = {"000000000"};
+int update_score = TRUE;
 
 // GAME CUSTOM FUNCTIONS
 void spawn_piece();
@@ -520,4 +521,5 @@ void increase_score(int points){
             j--;
         }
     }
+    update_score = TRUE;
 }

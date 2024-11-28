@@ -7,10 +7,10 @@
 
 // STANDARDS VARIABLES
 int game_is_running = FALSE;
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
-SDL_Texture *texture = NULL;
-SDL_Surface *bitmapSurface = NULL;
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+SDL_Texture *texture[NTEXTURE] = {NULL};
+SDL_Surface *bitmapSurface[NTEXTURE] = {NULL};
 int last_frame_time = 0;
 
 // OBJECTS
@@ -344,31 +344,33 @@ void render(){ // CAN BE CALLED ALSO draw()
     char filename[50];
 
     for (int i = 0; i < length; ++i) {
-        if ((int)score[i] >= '0' && (int)score[i] <= '9')
+        if ((int) score[i] >= '0' && (int) score[i] <= '9')
             snprintf(filename, sizeof(filename), "BMP_FONT/Number_%c.bmp", score[i]);
         else
             snprintf(filename, sizeof(filename), "BMP_FONT/Letter_%c.bmp", score[i]);
 
-        // LOAD BITMAP IMAGE
-        bitmapSurface = SDL_LoadBMP(filename);
-        if (!bitmapSurface) {
-            printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
-        }
+        if (update_score) {
+            // LOAD BITMAP IMAGE
+            bitmapSurface[i] = SDL_LoadBMP(filename);
+            if (!bitmapSurface[i]) {
+                printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+            }
 
-        // CREATE A TEXTURE FORM THE SURFACE
-        texture = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
-        SDL_FreeSurface(bitmapSurface); // Surface no longer needed
-        if (!texture) {
-            printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+            // CREATE A TEXTURE FORM THE SURFACE
+            texture[i] = SDL_CreateTextureFromSurface(renderer, bitmapSurface[i]);
+            SDL_FreeSurface(bitmapSurface[i]); // Surface no longer needed
+            if (!texture[i]) {
+                printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+            }
         }
 
         // COPY THE TEXTURE TO RENDER
-        SDL_RenderCopy(renderer, texture, NULL, &dest);
+        SDL_RenderCopy(renderer, texture[i], NULL, &dest);
 
         // NEXT POSITION
-        dest.x += (BLOCK_SIZE/2);
-
+        dest.x += (BLOCK_SIZE / 2);
     }
+    update_score = FALSE;
 
     SDL_RenderPresent(renderer); // SWAPPING FORM BACK TO FRONT BUFFER TO PREVENT FLICKERING FRAMES
 }

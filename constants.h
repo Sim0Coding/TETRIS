@@ -28,4 +28,6 @@
 #define NEXT_MOVE_TIME 50   // 0.05s
 #define LOCKING_TIME 1500   // 1.5s
 
+#define NTEXTURE 10
+
 #endif //GAME1_CONSTANTS_H

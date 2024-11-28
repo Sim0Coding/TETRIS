@@ -30,6 +30,8 @@ Uint32 lock_timeout = 0;
 
 int start_locking_timer = 1;
 
+char score[] = {"000000000"};
+
 // GAME CUSTOM FUNCTIONS
 void spawn_piece();
 void move();
@@ -42,7 +44,9 @@ int hindered(char);
 void create_piece();
 void rotate();
 void line_clear();
-void compact(int line);
+void compact(int);
+int end_game();
+void increase_score(int);
 #endif //TETRIS_GAMEFUNCTIONS_H
 
 
@@ -76,13 +80,16 @@ void spawn_piece(){
 
     row = 0;
 
-    if(piece_num == 1){ // I PIECE EXCEPTION
-        col = rand() % ((spawn_point1_x - 5) - (spawn_point2_x) + 1) + (spawn_point2_x);
-    }else if(piece_num == 4) { // O PIECE EXCEPTION
-        col = rand() % ((spawn_point1_x - 3) - (spawn_point2_x) + 1) + (spawn_point2_x);
-    }else{
-        col = rand() % ((spawn_point1_x - 2) - (spawn_point2_x) + 1) + (spawn_point2_x);
-    }
+    do {
+        if(piece_num == 1){ // I PIECE EXCEPTION
+            col = rand() % ((spawn_point1_x - 5) - (spawn_point2_x) + 1) + (spawn_point2_x);
+        }else if(piece_num == 4) { // O PIECE EXCEPTION
+            col = rand() % ((spawn_point1_x - 3) - (spawn_point2_x) + 1) + (spawn_point2_x);
+        }else{
+            col = rand() % ((spawn_point1_x - 2) - (spawn_point2_x) + 1) + (spawn_point2_x);
+        }
+    } while (static_field[row][col] == 1);  // USED TO RECALCULATE THE COL WHEN THERE ARE PIECES HINDERING THE SPAWN ZONE
+
 
     for (int i = 0; i < NROW_TEMP; ++i) {
         for (int j = 0; j < NCOL_TEMP; ++j) {
@@ -108,71 +115,31 @@ void create_piece(){
     int w,h;
 
     FILE *fp = NULL;
-    char *line, *number;
+    char *line[4], *number, filename[50];;
 
     h = 0;
 
-    // READ FILE DAT
-    switch (piece_num) {
-        // ■ ■ ■ ■
-        case 1:
-            if      (rotation == 1) { fp = fopen("Pieces/I_piece_1.txt", "r"); }
-            else if (rotation == 2) { fp = fopen("Pieces/I_piece_2.txt", "r"); }
-            else if (rotation == 3) { fp = fopen("Pieces/I_piece_3.txt", "r"); }
-            else if (rotation == 4) { fp = fopen("Pieces/I_piece_4.txt", "r"); }
-            break;
-            // ■
-            // ■ ■ ■
-        case 2:
-            if      (rotation == 1) { fp = fopen("Pieces/J_piece_1.txt", "r"); }
-            else if (rotation == 2) { fp = fopen("Pieces/J_piece_2.txt", "r"); }
-            else if (rotation == 3) { fp = fopen("Pieces/J_piece_3.txt", "r"); }
-            else if (rotation == 4) { fp = fopen("Pieces/J_piece_4.txt", "r"); }
-            break;
-            //     ■
-            // ■ ■ ■
-        case 3:
-            if      (rotation == 1) { fp = fopen("Pieces/L_piece_1.txt", "r"); }
-            else if (rotation == 2) { fp = fopen("Pieces/L_piece_2.txt", "r"); }
-            else if (rotation == 3) { fp = fopen("Pieces/L_piece_3.txt", "r"); }
-            else if (rotation == 4) { fp = fopen("Pieces/L_piece_4.txt", "r"); }
-            break;
-            // ■ ■
-            // ■ ■
-        case 4:
-            fp = fopen("Pieces/O_piece.txt", "r");
-            break;
-            //   ■ ■
-            // ■ ■
-        case 5:
-            if      (rotation == 1) { fp = fopen("Pieces/S_piece_1.txt", "r"); }
-            else if (rotation == 2) { fp = fopen("Pieces/S_piece_2.txt", "r"); }
-            else if (rotation == 3) { fp = fopen("Pieces/S_piece_3.txt", "r"); }
-            else if (rotation == 4) { fp = fopen("Pieces/S_piece_4.txt", "r"); }
-            break;
-            //   ■
-            // ■ ■ ■
-        case 6:
-            if      (rotation == 1) { fp = fopen("Pieces/T_piece_1.txt", "r"); }
-            else if (rotation == 2) { fp = fopen("Pieces/T_piece_2.txt", "r"); }
-            else if (rotation == 3) { fp = fopen("Pieces/T_piece_3.txt", "r"); }
-            else if (rotation == 4) { fp = fopen("Pieces/T_piece_4.txt", "r"); }
-            break;
-            // ■ ■
-            //   ■ ■
-        case 7:
-            if      (rotation == 1) { fp = fopen("Pieces/Z_piece_1.txt", "r"); }
-            else if (rotation == 2) { fp = fopen("Pieces/Z_piece_2.txt", "r"); }
-            else if (rotation == 3) { fp = fopen("Pieces/Z_piece_3.txt", "r"); }
-            else if (rotation == 4) { fp = fopen("Pieces/Z_piece_4.txt", "r"); }
-            break;
-        default:        // ERROR MSG
-            printf("Piece not found!");
-            break;
+    // VALIDATE ROTATION
+    if (rotation < 1 || rotation > 4) {
+        printf("Invalid rotation: %d\n", rotation);
     }
 
-    if (fp == NULL)
-        printf("File not found!\n");
+    switch (piece_num) {
+        case 1: snprintf(filename, sizeof(filename), "Pieces/I_piece_%d.txt", rotation); break;
+        case 2: snprintf(filename, sizeof(filename), "Pieces/J_piece_%d.txt", rotation); break;
+        case 3: snprintf(filename, sizeof(filename), "Pieces/L_piece_%d.txt", rotation); break;
+        case 4: snprintf(filename, sizeof(filename), "Pieces/O_piece.txt"); break; // NO ROTATION
+        case 5: snprintf(filename, sizeof(filename), "Pieces/S_piece_%d.txt", rotation); break;
+        case 6: snprintf(filename, sizeof(filename), "Pieces/T_piece_%d.txt", rotation); break;
+        case 7: snprintf(filename, sizeof(filename), "Pieces/Z_piece_%d.txt", rotation); break;
+        default:
+            printf("Piece not found for piece_num: %d\n", piece_num);
+    }
+
+    fp = fopen(filename, "r");
+    if (!fp) {
+        printf("Error opening file: %s\n", filename);
+    }
 
     while(!feof(fp)){
         w = 0;
@@ -192,6 +159,8 @@ void create_piece(){
  * -------------------------|ROTATE|-------------------------
  *  Date of Creation:
  *  24/11/2024
+ *  Modified:
+ *  27/11/2024
  *  Parameters:
  *
  *  Description:
@@ -200,49 +169,47 @@ void create_piece(){
  *  There are also calculated the offsets for specific cases.
  */
 void rotate() {
-    int length, skip = 0;
+    int length, skip = FALSE;
 
     create_piece();
 
-    length = sizeof(piece_matrix) / sizeof(piece_matrix[0]);
+    // I PIECE OFFSETS
+    if (piece_num == 1) {
+        if (col + 2 == 0) {
+            col++;
+        } else if (col + 2 == NCOL - 1) {
+            col--;
+        } else if (col + 1 == NCOL - 1) {
+            col -= 2;
+        }else if(row + 1 == NROW-1){
+            row -= 2;
+        }else if(row + 2 == NROW-1){
+            row--;
+        }
+    }
+    // GENERAL OFFSETS (except O piece)
+    if(piece_num != 4) {
+        if (col + 1 == 0) {
+            col++;
+        } else if (col + 1 == NCOL - 1) {
+            col--;
+        } else if (row + 1 == NROW - 1) {
+            row--;
+        }
+    }
 
-    // CHECKING IF COL IS OUT OF BOUNDS AND ADJUSTING IT
-    if(col < 0 || col > NCOL)
-        col += -col;
+    length = sizeof(piece_matrix) / sizeof(piece_matrix[0]);
 
     // CHECK IF THE ROTATION IS POSSIBLE
     for (int i = 0; i < length; ++i) {
         for (int j = 0; j < length; ++j) {
-            if (piece_matrix[i][j] == 1 && static_field[row+i][col+j] == 1)
-                skip = 1;
+            if (piece_matrix[i][j] == 1 && static_field[row + i][col + j] == 1){
+                skip = TRUE;
+            }
         }
     }
 
     if(!skip){
-        // I PIECE OFFSETS
-        if (piece_num == 1) {
-            if (col + 2 == 0) {
-                col++;
-            } else if (col + 2 == NCOL - 1) {
-                col--;
-            } else if (col + 1 == NCOL - 1) {
-                col -= 2;
-            }else if(row + 1 == NROW-1){
-                row -= 2;
-            }else if(row + 2 == NROW-1){
-                row--;
-            }
-        }
-        // GENERAL OFFSETS (except O piece)
-        if(piece_num != 4) {
-            if (col + 1 == 0) {
-                col++;
-            } else if (col + 1 == NCOL - 1) {
-                col--;
-            } else if (row + 1 == NROW - 1) {
-                row--;
-            }
-        }
         // PASTE THE PIECE ROTATED
         for (int i = 0; i < NROW_TEMP; ++i) {
             for (int j = 0; j < NCOL_TEMP; ++j) {
@@ -273,7 +240,7 @@ void move(){
             rotate();
             break;
         case SDLK_s:    // MOVE DOWN
-            if (!fell){
+            if (!fell && row != (NROW-1)){
                 shift(0);
                 row++;
             }
@@ -290,8 +257,7 @@ void move(){
                 col++;
             }
             break;
-        default:        // ERROR MSG
-            printf("Key not bound to any control!\n");
+        default:
             break;
     }
 }
@@ -370,12 +336,12 @@ int is_fallen(){
     for (int i = 0; i < NROW; ++i) {
         for (int j = 0; j < NCOL; ++j) {
             if (dynamic_field[NROW-1][j] == 1 || (dynamic_field[i][j] == 1 && static_field[i+1][j] == 1)){
-                return 1;
+                return TRUE;
             }
         }
     }
 
-    return 0;
+    return FALSE;
 }
 
 /*
@@ -409,9 +375,9 @@ void save_pieces(){
 int is_near_right_border(){
     for (int i = NROW-1; i >= 0; --i) {
         if(dynamic_field[i][NCOL-1] == 1)
-            return 1;
+            return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 /*
@@ -426,9 +392,9 @@ int is_near_right_border(){
 int is_near_left_border(){
     for (int i = 0; i < NROW; ++i) {
         if(dynamic_field[i][0] == 1)
-            return 1;
+            return TRUE;
     }
-    return 0;
+    return FALSE;
 }
 
 /*
@@ -454,11 +420,11 @@ int hindered(char dir){
             if (dir == 'r'
                 && dynamic_field[i][j] == 1
                 && static_field[i][j+1] == 1){
-                return 1;
+                return TRUE;
             }
         }
     }
-    return 0;
+    return FALSE;
 }
 
 /*
@@ -485,6 +451,7 @@ void line_clear(){
                 static_field[i][j] = 0;
             }
             compact(i);
+            increase_score(100);
         }
     }
 }
@@ -508,3 +475,49 @@ void compact(int line){
     }
 }
 
+/*
+ * -------------------------|END_GAME|-------------------------
+ *  Date of Creation:
+ *  27/11/2024
+ *  Parameters:
+ *
+ *  Description:
+ *  It is used to control if the player placed a piece in the
+ *  first row of the static field.
+ *  If the case, then it end the game.
+ */
+int end_game(){
+    for (int i = 0; i < NCOL; ++i) {
+        if (static_field[0][i] == 1)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+/*
+ * --------------------------|INCREASE_SCORE|--------------------------
+ *  Date of Creation:
+ *  28/11/2024
+ *  Parameters:
+ *  - points:int = It is used to store the points which will be added.
+ *  Description:
+ *  It is used to increase the score of a certain amount of points.
+ */
+void increase_score(int points){
+    int lenght = sizeof(score)/sizeof(score[0]);
+    char string[lenght];
+    for (int i = 0; i < lenght; ++i) {
+        string[i] = '\000';
+    }
+    int temp_score = atoi(score);
+    temp_score += points;
+    itoa(temp_score,string,10);
+    //TODO: TEST FOR BUGS
+    int j = lenght-2;
+    for (int i = lenght-1; i >= 0 ; --i) {
+        if ((int)string[i] > 0) {
+            score[j] = string[i];
+            j--;
+        }
+    }
+}

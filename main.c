@@ -4,10 +4,13 @@
 #include "constants.h"
 #include "gameFunctions.h"
 
+
 // STANDARDS VARIABLES
 int game_is_running = FALSE;
 SDL_Window* window = NULL;
 SDL_Renderer* renderer = NULL;
+SDL_Texture *texture = NULL;
+SDL_Surface *bitmapSurface = NULL;
 int last_frame_time = 0;
 
 // OBJECTS
@@ -24,6 +27,13 @@ struct boundary {
     float width;
     float height;
 }boundary;
+
+struct score_bg {
+    float x;
+    float y;
+    float width;
+    float height;
+}score_bg;
 
 // STANDARDS FUNCTIONS
 int initialize_window(void);
@@ -121,6 +131,11 @@ void setup(){
     block.y = boundary.y;
     block.width = BLOCK_COLOR_SIZE;
     block.height = BLOCK_COLOR_SIZE;
+
+    score_bg.width = (BLOCK_SIZE/2)*9;  // 16px * 9 --> SCORE: 999.999.999
+    score_bg.height = (BLOCK_SIZE/2) + 4;   // 16px + 4 px for padding
+    score_bg.x = (WINDOW_WIDTH/2)+(boundary.width/2)+((WINDOW_WIDTH/2-boundary.width/2)/2)-score_bg.width/2;
+    score_bg.y = (WINDOW_HEIGHT/2)-(score_bg.height/2);
 
     falling_timeout = SDL_GetTicks() + FALLING_TIME;
     next_move_timeout = SDL_GetTicks() + NEXT_MOVE_TIME;
@@ -243,8 +258,9 @@ void update(){
     }
     key_sym_pre = key_sym;
 
-    // TODO: CHECK IF IN THE FIRST 4 ROWS THERE ARE SOME PIECES TOUCHING THE ONES WHICH SPAWNS, IF YES THEN THE PLAYER LOSE AND THE GAME CLOSE
-
+    // END THE GAME IF THERE IS A PIECE IN THE FIRST ROW
+    if (end_game())
+        game_is_running = FALSE;
 }
 
 /*
@@ -259,10 +275,11 @@ void update(){
  *  on a renderer every frame.
  */
 void render(){ // CAN BE CALLED ALSO draw()
+    //--------------------BACKGROUND--------------------
     SDL_SetRenderDrawColor(renderer, 0,0,0,255); // SET THE COLOR
     SDL_RenderClear(renderer);
 
-    // FIELD MARGINS RENDERING
+    //--------------------FIELD_MARGINS--------------------
     SDL_Rect boundary_rect = {
             (int)boundary.x,
             (int)boundary.y,
@@ -274,7 +291,7 @@ void render(){ // CAN BE CALLED ALSO draw()
     SDL_SetRenderDrawColor(renderer,255,255,255,255);
     SDL_RenderDrawRect(renderer,&boundary_rect);
 
-    // GAME FIELD RENDERING
+    //--------------------GAME_FIELD--------------------
     SDL_Rect block_rect = {
             (int)block.x,
             (int)block.y,
@@ -304,6 +321,53 @@ void render(){ // CAN BE CALLED ALSO draw()
         }
         block_rect.x = (int)boundary.x;
         block_rect.y += BLOCK_SIZE;
+    }
+
+    //--------------------SCORE_BACKGROUND--------------------
+    SDL_Rect score_bg_rect = {
+            (int)score_bg.x,
+            (int)score_bg.y,
+            (int)score_bg.width,
+            (int)score_bg.height
+    };
+    SDL_SetRenderDrawColor(renderer,255,255,255,255);
+    SDL_RenderFillRect(renderer,&score_bg_rect);
+
+    //--------------------SCORE--------------------
+    SDL_Rect dest = {
+            (int)score_bg.x,
+            (int)score_bg.y + 2,
+            16,
+            16
+    };
+    int length = sizeof(score) / sizeof(score[0]);
+    char filename[50];
+
+    for (int i = 0; i < length; ++i) {
+        if ((int)score[i] >= '0' && (int)score[i] <= '9')
+            snprintf(filename, sizeof(filename), "BMP_FONT/Number_%c.bmp", score[i]);
+        else
+            snprintf(filename, sizeof(filename), "BMP_FONT/Letter_%c.bmp", score[i]);
+
+        // LOAD BITMAP IMAGE
+        bitmapSurface = SDL_LoadBMP(filename);
+        if (!bitmapSurface) {
+            printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+        }
+
+        // CREATE A TEXTURE FORM THE SURFACE
+        texture = SDL_CreateTextureFromSurface(renderer, bitmapSurface);
+        SDL_FreeSurface(bitmapSurface); // Surface no longer needed
+        if (!texture) {
+            printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+        }
+
+        // COPY THE TEXTURE TO RENDER
+        SDL_RenderCopy(renderer, texture, NULL, &dest);
+
+        // NEXT POSITION
+        dest.x += (BLOCK_SIZE/2);
+
     }
 
     SDL_RenderPresent(renderer); // SWAPPING FORM BACK TO FRONT BUFFER TO PREVENT FLICKERING FRAMES

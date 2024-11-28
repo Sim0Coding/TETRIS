@@ -1186,6 +1186,18 @@
 			"value" : "C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a"
 		},
 		{
+			"name" : "SDL2TTF_DIR",
+			"properties" : 
+			[
+				{
+					"name" : "HELPSTRING",
+					"value" : "The directory containing a CMake configuration file for SDL2TTF."
+				}
+			],
+			"type" : "PATH",
+			"value" : "SDL2TTF_DIR-NOTFOUND"
+		},
+		{
 			"name" : "SDL2_INCLUDE_DIR",
 			"properties" : 
 			[
@@ -1219,7 +1231,7 @@
 				}
 			],
 			"type" : "INTERNAL",
-			"value" : "mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2.dll.a"
+			"value" : "mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;mingw32;-mwindows;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a;C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2.dll.a"
 		},
 		{
 			"name" : "Tetris_BINARY_DIR",

@@ -9,12 +9,16 @@
 int game_is_running = FALSE;
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
+int last_frame_time = 0;
+
+// SURFACES & TEXTURE
 SDL_Texture *texture[NTEXTURE] = {NULL};
 SDL_Surface *bitmapSurface[NTEXTURE] = {NULL};
 SDL_Texture *texture_dyn_piece = NULL;
 SDL_Texture *texture_stc_piece = NULL;
 SDL_Surface *bitmapSurface_piece = NULL;
-int last_frame_time = 0;
+SDL_Texture *texture_bg = NULL;
+SDL_Surface *bitmapSurface_bg = NULL;
 
 // OBJECTS
 struct block {
@@ -119,12 +123,15 @@ int initialize_window(){
  */
 void setup(){
     srand(time(NULL));  // RANDOMIZE THE SEED OF RAND
+
+    // SETTING TO 0 THE MATRIX
     for (int i = 0; i < NROW; ++i) {
         for (int j = 0; j < NCOL; ++j) {
             dynamic_field[i][j] = 0;
         }
     }
 
+    // SETTING THE PROPRIETIES OF THE STRUCTS
     boundary.width = BLOCK_SIZE * NCOL;
     boundary.height = BLOCK_SIZE * NROW;
     boundary.x = (WINDOW_WIDTH/2)-(boundary.width/2);
@@ -140,8 +147,28 @@ void setup(){
     score_bg.x = (WINDOW_WIDTH/2)+(boundary.width/2)+((WINDOW_WIDTH/2-boundary.width/2)/2)-score_bg.width/2;
     score_bg.y = (WINDOW_HEIGHT/2)-(score_bg.height/2);
 
+    // TIMERS SETUP
     falling_timeout = SDL_GetTicks() + FALLING_TIME;
     next_move_timeout = SDL_GetTicks() + NEXT_MOVE_TIME;
+
+
+    // UPLOAD OF THE BACKGROUND BITMAP/IMAGE
+    char filename_background[50];
+
+    strcpy(filename_background,"ASSETS/Sprite_Bg.bmp");
+
+    // LOAD BITMAP IMAGE
+    bitmapSurface_bg = SDL_LoadBMP(filename_background);
+    if (!bitmapSurface_bg) {
+        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+    }
+
+    // CREATE A TEXTURE FORM THE SURFACE
+    texture_bg = SDL_CreateTextureFromSurface(renderer, bitmapSurface_bg);
+    SDL_FreeSurface(bitmapSurface_bg); // Surface no longer needed
+    if (!texture_bg) {
+        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+    }
 
 }
 
@@ -278,9 +305,13 @@ void update(){
  *  on a renderer every frame.
  */
 void render(){ // CAN BE CALLED ALSO draw()
-    //--------------------BACKGROUND--------------------
+    //--------------------BASE_BACKGROUND--------------------
     SDL_SetRenderDrawColor(renderer, 0,0,0,255); // SET THE COLOR
     SDL_RenderClear(renderer);
+
+    //--------------------IMAGE_BACKGROUND--------------------
+
+    SDL_RenderCopy(renderer, texture_bg, NULL, NULL);
 
     //--------------------FIELD_MARGINS--------------------
     SDL_Rect boundary_rect = {

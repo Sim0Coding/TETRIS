@@ -244,6 +244,7 @@ void move(){
             break;
         case SDLK_s:    // MOVE DOWN
             if (!fell && row != (NROW-1)){
+                increase_score(1);
                 shift(0);
                 row++;
             }
@@ -516,7 +517,7 @@ void increase_score(int points){
     int temp_score = atoi(score);
     temp_score += points;
     itoa(temp_score,string,10);
-    //TODO: TEST FOR BUGS
+
     int j = lenght-2;
     for (int i = lenght-1; i >= 0 ; --i) {
         if ((int)string[i] > 0) {

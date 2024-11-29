@@ -23,6 +23,8 @@ int col = 0, row = 0;
 int rotation = 1;
 int piece_num = 1;
 int piece_matrix[NROW_TEMP][NCOL_TEMP] = {0};
+int update_dynamic_sprite = TRUE;
+int update_static_sprite = FALSE;
 
 Uint32 falling_timeout = 0;
 Uint32 next_move_timeout = 0;
@@ -97,7 +99,7 @@ void spawn_piece(){
             dynamic_field[row+i][col+j] = piece_matrix[i][j];
         }
     }
-
+    update_dynamic_sprite = TRUE;
 }
 
 /*
@@ -362,6 +364,7 @@ void save_pieces(){
                 static_field[i][j] = dynamic_field[i][j];
         }
     }
+    update_static_sprite = TRUE;
 }
 
 /*

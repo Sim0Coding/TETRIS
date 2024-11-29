@@ -11,6 +11,9 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_Texture *texture[NTEXTURE] = {NULL};
 SDL_Surface *bitmapSurface[NTEXTURE] = {NULL};
+SDL_Texture *texture_dyn_piece = NULL;
+SDL_Texture *texture_stc_piece = NULL;
+SDL_Surface *bitmapSurface_piece = NULL;
 int last_frame_time = 0;
 
 // OBJECTS
@@ -298,27 +301,76 @@ void render(){ // CAN BE CALLED ALSO draw()
             (int)block.width,
             (int)block.height
     };
+
+    char filename_piece[50];
+
+    // RENDER DYNAMIC FIELD PIECES
     for (int i = 0; i < NROW; ++i) {
         for (int j = 0; j < NCOL; ++j) {
+
+            snprintf(filename_piece, sizeof(filename_piece), "ASSETS/Sprite_%d.bmp", piece_num);
+
+            if (update_dynamic_sprite) {
+                // LOAD BITMAP IMAGE
+                bitmapSurface_piece = SDL_LoadBMP(filename_piece);
+                if (!bitmapSurface_piece) {
+                    printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+                }
+
+                // CREATE A TEXTURE FORM THE SURFACE
+                texture_dyn_piece = SDL_CreateTextureFromSurface(renderer, bitmapSurface_piece);
+                SDL_FreeSurface(bitmapSurface_piece); // Surface no longer needed
+                if (!texture_dyn_piece) {
+                    printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+                }
+                update_dynamic_sprite = FALSE;
+            }
+
             if (dynamic_field[i][j] == 1){
-                SDL_SetRenderDrawColor(renderer,255,255,255,255);
-                SDL_RenderFillRect(renderer, &block_rect);
+                // COPY THE TEXTURE TO RENDER
+                SDL_RenderCopy(renderer, texture_dyn_piece, NULL, &block_rect);
             }
             block_rect.x += BLOCK_SIZE;
         }
+        // UPDATE THE COORDINATES
         block_rect.x = (int)boundary.x;
         block_rect.y += BLOCK_SIZE;
     }
+    // RESET THE COORDINATE
     block_rect.x = (int)block.x;
     block_rect.y = (int)block.y;
+
+    // RENDER STATIC FIELD PIECES
+
     for (int i = 0; i < NROW; ++i) {
         for (int j = 0; j < NCOL; ++j) {
+
+            if (update_static_sprite) {
+
+                strcpy(filename_piece,"ASSETS/Sprite_Base.bmp");
+
+                // LOAD BITMAP IMAGE
+                bitmapSurface_piece = SDL_LoadBMP(filename_piece);
+                if (!bitmapSurface_piece) {
+                    printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+                }
+
+                // CREATE A TEXTURE FORM THE SURFACE
+                texture_stc_piece = SDL_CreateTextureFromSurface(renderer, bitmapSurface_piece);
+                SDL_FreeSurface(bitmapSurface_piece); // Surface no longer needed
+                if (!texture_stc_piece) {
+                    printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+                }
+                update_static_sprite = FALSE;
+            }
+
             if (static_field[i][j] == 1){
-                SDL_SetRenderDrawColor(renderer,0,255,255,255);
-                SDL_RenderFillRect(renderer, &block_rect);
+                // COPY THE TEXTURE TO RENDER
+                SDL_RenderCopy(renderer, texture_stc_piece, NULL, &block_rect);
             }
             block_rect.x += BLOCK_SIZE;
         }
+        // UPDATE THE COORDINATES
         block_rect.x = (int)boundary.x;
         block_rect.y += BLOCK_SIZE;
     }
@@ -341,17 +393,17 @@ void render(){ // CAN BE CALLED ALSO draw()
             16
     };
     int length = sizeof(score) / sizeof(score[0]);
-    char filename[50];
+    char filename_char[50];
 
     for (int i = 0; i < length; ++i) {
         if ((int) score[i] >= '0' && (int) score[i] <= '9')
-            snprintf(filename, sizeof(filename), "BMP_FONT/Number_%c.bmp", score[i]);
+            snprintf(filename_char, sizeof(filename_char), "BMP_FONT/Number_%c.bmp", score[i]);
         else
-            snprintf(filename, sizeof(filename), "BMP_FONT/Letter_%c.bmp", score[i]);
+            snprintf(filename_char, sizeof(filename_char), "BMP_FONT/Letter_%c.bmp", score[i]);
 
         if (update_score) {
             // LOAD BITMAP IMAGE
-            bitmapSurface[i] = SDL_LoadBMP(filename);
+            bitmapSurface[i] = SDL_LoadBMP(filename_char);
             if (!bitmapSurface[i]) {
                 printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
             }

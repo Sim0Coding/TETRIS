@@ -50,6 +50,7 @@ void line_clear();
 void compact(int);
 int end_game();
 void increase_score(int);
+void load_texture(char *, SDL_Surface **, SDL_Texture **, SDL_Renderer **);
 #endif //TETRIS_GAMEFUNCTIONS_H
 
 
@@ -526,6 +527,30 @@ void increase_score(int points){
         }
     }
     update_score = TRUE;
+}
+
+/*
+ * --------------------------|LOAD_TEXTURE|--------------------------
+ *  Date of Creation:
+ *  30/11/2024
+ *  Parameters:
+ *
+ *  Description:
+ *  It is used to upload the texture of a bitmap image.
+ */
+void load_texture(char filename[], SDL_Surface **bitmapSurface, SDL_Texture **texture, SDL_Renderer **renderer){
+    // LOAD BITMAP IMAGE
+    *bitmapSurface = SDL_LoadBMP(filename);
+    if (!*bitmapSurface) {
+        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+    }
+
+    // CREATE A TEXTURE FORM THE SURFACE
+    *texture = SDL_CreateTextureFromSurface(*renderer, *bitmapSurface);
+    SDL_FreeSurface(*bitmapSurface); // Surface no longer needed
+    if (!*texture) {
+        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+    }
 }
 
 

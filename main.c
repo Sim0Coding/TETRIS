@@ -169,39 +169,10 @@ void setup(){
 
 
     // UPLOAD OF THE BACKGROUND BITMAP/IMAGE
-    char filename_preload[50];
-
-    strcpy(filename_preload,"ASSETS/Sprite_Bg.bmp");
-
-    // LOAD BITMAP IMAGE
-    bitmapSurface_preload = SDL_LoadBMP(filename_preload);
-    if (!bitmapSurface_preload) {
-        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
-    }
-
-    // CREATE A TEXTURE FORM THE SURFACE
-    texture_bg = SDL_CreateTextureFromSurface(renderer, bitmapSurface_preload);
-    SDL_FreeSurface(bitmapSurface_preload); // Surface no longer needed
-    if (!texture_bg) {
-        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
-    }
+    load_texture("ASSETS/Sprite_Bg.bmp", &bitmapSurface_preload, &texture_bg,&renderer);
 
     // UPLOAD OF THE PAUSE BITMAP/IMAGE
-    strcpy(filename_preload,"ASSETS/Sprite_Pause.bmp");
-
-    // LOAD BITMAP IMAGE
-    bitmapSurface_preload = SDL_LoadBMP(filename_preload);
-    if (!bitmapSurface_preload) {
-        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
-    }
-
-    // CREATE A TEXTURE FORM THE SURFACE
-    texture_pause = SDL_CreateTextureFromSurface(renderer, bitmapSurface_preload);
-    SDL_FreeSurface(bitmapSurface_preload); // Surface no longer needed
-    if (!texture_pause) {
-        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
-    }
-
+    load_texture("ASSETS/Sprite_Pause.bmp", &bitmapSurface_preload, &texture_pause,&renderer);
 
 }
 
@@ -386,18 +357,8 @@ void render(){ // CAN BE CALLED ALSO draw()
                 snprintf(filename_piece, sizeof(filename_piece), "ASSETS/Sprite_%d.bmp", piece_num);
 
                 if (update_dynamic_sprite) {
-                    // LOAD BITMAP IMAGE
-                    bitmapSurface_piece = SDL_LoadBMP(filename_piece);
-                    if (!bitmapSurface_piece) {
-                        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
-                    }
 
-                    // CREATE A TEXTURE FORM THE SURFACE
-                    texture_dyn_piece = SDL_CreateTextureFromSurface(renderer, bitmapSurface_piece);
-                    SDL_FreeSurface(bitmapSurface_piece); // Surface no longer needed
-                    if (!texture_dyn_piece) {
-                        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
-                    }
+                    load_texture(filename_piece, &bitmapSurface_piece, &texture_dyn_piece,&renderer);
                     update_dynamic_sprite = FALSE;
                 }
 
@@ -422,20 +383,7 @@ void render(){ // CAN BE CALLED ALSO draw()
 
                 if (update_static_sprite) {
 
-                    strcpy(filename_piece, "ASSETS/Sprite_Base.bmp");
-
-                    // LOAD BITMAP IMAGE
-                    bitmapSurface_piece = SDL_LoadBMP(filename_piece);
-                    if (!bitmapSurface_piece) {
-                        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
-                    }
-
-                    // CREATE A TEXTURE FORM THE SURFACE
-                    texture_stc_piece = SDL_CreateTextureFromSurface(renderer, bitmapSurface_piece);
-                    SDL_FreeSurface(bitmapSurface_piece); // Surface no longer needed
-                    if (!texture_stc_piece) {
-                        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
-                    }
+                    load_texture("ASSETS/Sprite_Base.bmp", &bitmapSurface_piece, &texture_stc_piece,&renderer);
                     update_static_sprite = FALSE;
                 }
 
@@ -486,18 +434,7 @@ void render(){ // CAN BE CALLED ALSO draw()
             snprintf(filename_char, sizeof(filename_char), "BMP_FONT/Letter_%c.bmp", score[i]);
 
         if (update_score) {
-            // LOAD BITMAP IMAGE
-            bitmapSurface[i] = SDL_LoadBMP(filename_char);
-            if (!bitmapSurface[i]) {
-                printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
-            }
-
-            // CREATE A TEXTURE FORM THE SURFACE
-            texture[i] = SDL_CreateTextureFromSurface(renderer, bitmapSurface[i]);
-            SDL_FreeSurface(bitmapSurface[i]); // Surface no longer needed
-            if (!texture[i]) {
-                printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
-            }
+            load_texture(filename_char, &bitmapSurface[i], &texture[i],&renderer);
         }
 
         // COPY THE TEXTURE TO RENDER

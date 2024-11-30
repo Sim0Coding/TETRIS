@@ -18,7 +18,9 @@ SDL_Texture *texture_dyn_piece = NULL;
 SDL_Texture *texture_stc_piece = NULL;
 SDL_Surface *bitmapSurface_piece = NULL;
 SDL_Texture *texture_bg = NULL;
-SDL_Surface *bitmapSurface_bg = NULL;
+SDL_Surface *bitmapSurface_preload = NULL;
+SDL_Texture *texture_pause = NULL;
+
 
 // OBJECTS
 struct block {
@@ -42,6 +44,13 @@ struct score_bg {
     float height;
 }score_bg;
 
+struct pause {
+    float x;
+    float y;
+    float width;
+    float height;
+}pause;
+
 // STANDARDS FUNCTIONS
 int initialize_window(void);
 void setup();
@@ -59,7 +68,8 @@ int main(int argc, char* argv[]) {
 
     while(game_is_running) {
         process_input();
-        update();
+        if (game_is_running != PAUSE)
+            update();
         render();
     }
 
@@ -85,12 +95,13 @@ int initialize_window(){
         return FALSE;
     }
     window = SDL_CreateWindow(             // CREATION OF A WINDOWS
-            NULL,                     // TITLE
+            "TETRIS",                     // TITLE
             SDL_WINDOWPOS_CENTERED,     // X COORDINATES
             SDL_WINDOWPOS_CENTERED,     // Y COORDINATES
             WINDOW_WIDTH,               // WIDTH
             WINDOW_HEIGHT,              // HEIGHT
-            SDL_WINDOW_BORDERLESS     // WINDOW CHARACTERISTICS
+            0
+            //SDL_WINDOW_BORDERLESS     // WINDOW CHARACTERISTICS
     );
     if(!window){
         fprintf(stderr,"Error initializing SDL.\n");
@@ -132,8 +143,8 @@ void setup(){
     }
 
     // SETTING THE PROPRIETIES OF THE STRUCTS
-    boundary.width = BLOCK_SIZE * NCOL;
-    boundary.height = BLOCK_SIZE * NROW;
+    boundary.width = BLOCK_SIZE * NCOL + 4;
+    boundary.height = BLOCK_SIZE * NROW + 4;
     boundary.x = (WINDOW_WIDTH/2)-(boundary.width/2);
     boundary.y = (WINDOW_HEIGHT/2)-(boundary.height/2);
 
@@ -147,28 +158,50 @@ void setup(){
     score_bg.x = (WINDOW_WIDTH/2)+(boundary.width/2)+((WINDOW_WIDTH/2-boundary.width/2)/2)-score_bg.width/2;
     score_bg.y = (WINDOW_HEIGHT/2)-(score_bg.height/2);
 
+    pause.width = 300;          // 300 px
+    pause.height = 100;         // 100 px
+    pause.x = boundary.x + 10;  // 10 px of padding
+    pause.y = (WINDOW_HEIGHT/2)-(pause.height/2);
+
     // TIMERS SETUP
     falling_timeout = SDL_GetTicks() + FALLING_TIME;
     next_move_timeout = SDL_GetTicks() + NEXT_MOVE_TIME;
 
 
     // UPLOAD OF THE BACKGROUND BITMAP/IMAGE
-    char filename_background[50];
+    char filename_preload[50];
 
-    strcpy(filename_background,"ASSETS/Sprite_Bg.bmp");
+    strcpy(filename_preload,"ASSETS/Sprite_Bg.bmp");
 
     // LOAD BITMAP IMAGE
-    bitmapSurface_bg = SDL_LoadBMP(filename_background);
-    if (!bitmapSurface_bg) {
+    bitmapSurface_preload = SDL_LoadBMP(filename_preload);
+    if (!bitmapSurface_preload) {
         printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
     }
 
     // CREATE A TEXTURE FORM THE SURFACE
-    texture_bg = SDL_CreateTextureFromSurface(renderer, bitmapSurface_bg);
-    SDL_FreeSurface(bitmapSurface_bg); // Surface no longer needed
+    texture_bg = SDL_CreateTextureFromSurface(renderer, bitmapSurface_preload);
+    SDL_FreeSurface(bitmapSurface_preload); // Surface no longer needed
     if (!texture_bg) {
         printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
     }
+
+    // UPLOAD OF THE PAUSE BITMAP/IMAGE
+    strcpy(filename_preload,"ASSETS/Sprite_Pause.bmp");
+
+    // LOAD BITMAP IMAGE
+    bitmapSurface_preload = SDL_LoadBMP(filename_preload);
+    if (!bitmapSurface_preload) {
+        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+    }
+
+    // CREATE A TEXTURE FORM THE SURFACE
+    texture_pause = SDL_CreateTextureFromSurface(renderer, bitmapSurface_preload);
+    SDL_FreeSurface(bitmapSurface_preload); // Surface no longer needed
+    if (!texture_pause) {
+        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+    }
+
 
 }
 
@@ -193,7 +226,7 @@ void process_input(){
             break;
         case SDL_KEYDOWN: // EVENT WHEN YOU CLICK A KEY ON THE KEYBOARD
             if (event.key.keysym.sym == SDLK_ESCAPE) // key pressed down == esc
-                game_is_running = FALSE;
+                game_is_running = PAUSE * game_is_running;
             else if (event.key.keysym.sym == SDLK_w
                      || event.key.keysym.sym == SDLK_s
                      || event.key.keysym.sym == SDLK_d
@@ -213,7 +246,7 @@ void process_input(){
  *  Date of Creation:
  *  17/11/2024
  *  Modified:
- *  26/11/2024
+ *  30/11/2024
  *  Parameters:
  *
  *  Description:
@@ -297,6 +330,8 @@ void update(){
  * ------------------------|RENDER|------------------------
  *  Date of Creation:
  *  17/11/2024
+ *  Modified:
+ *  30/11/2024
  *  Parameters:
  *
  *  Description:
@@ -313,97 +348,115 @@ void render(){ // CAN BE CALLED ALSO draw()
 
     SDL_RenderCopy(renderer, texture_bg, NULL, NULL);
 
-    //--------------------FIELD_MARGINS--------------------
+    //--------------------FIELD_BACKGROUND--------------------
     SDL_Rect boundary_rect = {
             (int)boundary.x,
             (int)boundary.y,
-            (int)boundary.width + 4,  // VISUAL ADJUSTMENTS FOR THE width OF THE MARGIN
-            (int)boundary.height + 4  // VISUAL ADJUSTMENTS FOR THE height OF THE MARGIN
+            (int)boundary.width,  // VISUAL ADJUSTMENTS FOR THE width OF THE MARGIN
+            (int)boundary.height  // VISUAL ADJUSTMENTS FOR THE height OF THE MARGIN
     };
+
     boundary_rect.x -= 3; // VISUAL ADJUSTMENTS FOR THE x OF THE MARGIN
     boundary_rect.y -= 3; // VISUAL ADJUSTMENTS FOR THE y OF THE MARGIN
+    SDL_SetRenderDrawColor(renderer,0,0,0,255);
+    SDL_RenderFillRect(renderer,&boundary_rect);
+
+    //--------------------FIELD_MARGINS--------------------
     SDL_SetRenderDrawColor(renderer,255,255,255,255);
     SDL_RenderDrawRect(renderer,&boundary_rect);
 
-    //--------------------GAME_FIELD--------------------
-    SDL_Rect block_rect = {
-            (int)block.x,
-            (int)block.y,
-            (int)block.width,
-            (int)block.height
-    };
+    //--------------------COMMANDS_IMAGE--------------------
 
-    char filename_piece[50];
 
-    // RENDER DYNAMIC FIELD PIECES
-    for (int i = 0; i < NROW; ++i) {
-        for (int j = 0; j < NCOL; ++j) {
+    if (game_is_running != PAUSE){
+        //--------------------GAME_FIELD--------------------
+        SDL_Rect block_rect = {
+                (int) block.x,
+                (int) block.y,
+                (int) block.width,
+                (int) block.height
+        };
 
-            snprintf(filename_piece, sizeof(filename_piece), "ASSETS/Sprite_%d.bmp", piece_num);
+        char filename_piece[50];
 
-            if (update_dynamic_sprite) {
-                // LOAD BITMAP IMAGE
-                bitmapSurface_piece = SDL_LoadBMP(filename_piece);
-                if (!bitmapSurface_piece) {
-                    printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+        // RENDER DYNAMIC FIELD PIECES
+        for (int i = 0; i < NROW; ++i) {
+            for (int j = 0; j < NCOL; ++j) {
+
+                snprintf(filename_piece, sizeof(filename_piece), "ASSETS/Sprite_%d.bmp", piece_num);
+
+                if (update_dynamic_sprite) {
+                    // LOAD BITMAP IMAGE
+                    bitmapSurface_piece = SDL_LoadBMP(filename_piece);
+                    if (!bitmapSurface_piece) {
+                        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+                    }
+
+                    // CREATE A TEXTURE FORM THE SURFACE
+                    texture_dyn_piece = SDL_CreateTextureFromSurface(renderer, bitmapSurface_piece);
+                    SDL_FreeSurface(bitmapSurface_piece); // Surface no longer needed
+                    if (!texture_dyn_piece) {
+                        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+                    }
+                    update_dynamic_sprite = FALSE;
                 }
 
-                // CREATE A TEXTURE FORM THE SURFACE
-                texture_dyn_piece = SDL_CreateTextureFromSurface(renderer, bitmapSurface_piece);
-                SDL_FreeSurface(bitmapSurface_piece); // Surface no longer needed
-                if (!texture_dyn_piece) {
-                    printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+                if (dynamic_field[i][j] == 1) {
+                    // COPY THE TEXTURE TO RENDER
+                    SDL_RenderCopy(renderer, texture_dyn_piece, NULL, &block_rect);
                 }
-                update_dynamic_sprite = FALSE;
+                block_rect.x += BLOCK_SIZE;
             }
-
-            if (dynamic_field[i][j] == 1){
-                // COPY THE TEXTURE TO RENDER
-                SDL_RenderCopy(renderer, texture_dyn_piece, NULL, &block_rect);
-            }
-            block_rect.x += BLOCK_SIZE;
+            // UPDATE THE COORDINATES
+            block_rect.x = (int) boundary.x;
+            block_rect.y += BLOCK_SIZE;
         }
-        // UPDATE THE COORDINATES
-        block_rect.x = (int)boundary.x;
-        block_rect.y += BLOCK_SIZE;
-    }
-    // RESET THE COORDINATE
-    block_rect.x = (int)block.x;
-    block_rect.y = (int)block.y;
+        // RESET THE COORDINATE
+        block_rect.x = (int) block.x;
+        block_rect.y = (int) block.y;
 
-    // RENDER STATIC FIELD PIECES
+        // RENDER STATIC FIELD PIECES
 
-    for (int i = 0; i < NROW; ++i) {
-        for (int j = 0; j < NCOL; ++j) {
+        for (int i = 0; i < NROW; ++i) {
+            for (int j = 0; j < NCOL; ++j) {
 
-            if (update_static_sprite) {
+                if (update_static_sprite) {
 
-                strcpy(filename_piece,"ASSETS/Sprite_Base.bmp");
+                    strcpy(filename_piece, "ASSETS/Sprite_Base.bmp");
 
-                // LOAD BITMAP IMAGE
-                bitmapSurface_piece = SDL_LoadBMP(filename_piece);
-                if (!bitmapSurface_piece) {
-                    printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+                    // LOAD BITMAP IMAGE
+                    bitmapSurface_piece = SDL_LoadBMP(filename_piece);
+                    if (!bitmapSurface_piece) {
+                        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+                    }
+
+                    // CREATE A TEXTURE FORM THE SURFACE
+                    texture_stc_piece = SDL_CreateTextureFromSurface(renderer, bitmapSurface_piece);
+                    SDL_FreeSurface(bitmapSurface_piece); // Surface no longer needed
+                    if (!texture_stc_piece) {
+                        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+                    }
+                    update_static_sprite = FALSE;
                 }
 
-                // CREATE A TEXTURE FORM THE SURFACE
-                texture_stc_piece = SDL_CreateTextureFromSurface(renderer, bitmapSurface_piece);
-                SDL_FreeSurface(bitmapSurface_piece); // Surface no longer needed
-                if (!texture_stc_piece) {
-                    printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+                if (static_field[i][j] == 1) {
+                    // COPY THE TEXTURE TO RENDER
+                    SDL_RenderCopy(renderer, texture_stc_piece, NULL, &block_rect);
                 }
-                update_static_sprite = FALSE;
+                block_rect.x += BLOCK_SIZE;
             }
-
-            if (static_field[i][j] == 1){
-                // COPY THE TEXTURE TO RENDER
-                SDL_RenderCopy(renderer, texture_stc_piece, NULL, &block_rect);
-            }
-            block_rect.x += BLOCK_SIZE;
+            // UPDATE THE COORDINATES
+            block_rect.x = (int) boundary.x;
+            block_rect.y += BLOCK_SIZE;
         }
-        // UPDATE THE COORDINATES
-        block_rect.x = (int)boundary.x;
-        block_rect.y += BLOCK_SIZE;
+    }else{
+        SDL_Rect pause_dest = {
+                (int)pause.x,
+                (int)pause.y,
+                (int)pause.width,
+                (int)pause.height
+        };
+        SDL_RenderCopy(renderer, texture_pause, NULL, &pause_dest);
     }
 
     //--------------------SCORE_BACKGROUND--------------------

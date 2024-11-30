@@ -527,3 +527,5 @@ void increase_score(int points){
     }
     update_score = TRUE;
 }
+
+

@@ -11,16 +11,18 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 int last_frame_time = 0;
 
-// SURFACES & TEXTURE
-SDL_Texture *texture[NTEXTURE] = {NULL};
+// SURFACES
 SDL_Surface *bitmapSurface[NTEXTURE] = {NULL};
-SDL_Texture *texture_dyn_piece = NULL;
-SDL_Texture *texture_stc_piece = NULL;
 SDL_Surface *bitmapSurface_piece = NULL;
-SDL_Texture *texture_bg = NULL;
 SDL_Surface *bitmapSurface_preload = NULL;
-SDL_Texture *texture_pause = NULL;
 
+// TEXTURE
+SDL_Texture *texture[NTEXTURE] = {NULL};
+SDL_Texture *texture_stc_piece = NULL;
+SDL_Texture *texture_dyn_piece = NULL;
+SDL_Texture *texture_bg = NULL;
+SDL_Texture *texture_pause = NULL;
+SDL_Texture *texture_controls = NULL;
 
 // OBJECTS
 struct block {
@@ -50,6 +52,13 @@ struct pause {
     float width;
     float height;
 }pause;
+
+struct controls {
+    float x;
+    float y;
+    float width;
+    float height;
+}controls;
 
 // STANDARDS FUNCTIONS
 int initialize_window(void);
@@ -163,6 +172,11 @@ void setup(){
     pause.x = boundary.x + 10;  // 10 px of padding
     pause.y = (WINDOW_HEIGHT/2)-(pause.height/2);
 
+    controls.width = 200;          // 200 px
+    controls.height = 272;         // 272 px
+    controls.x = ((((WINDOW_WIDTH - boundary.width)/2) - controls.width)/2) ;  //
+    controls.y = (WINDOW_HEIGHT/2)-(controls.height/2);
+
     // TIMERS SETUP
     falling_timeout = SDL_GetTicks() + FALLING_TIME;
     next_move_timeout = SDL_GetTicks() + NEXT_MOVE_TIME;
@@ -173,6 +187,9 @@ void setup(){
 
     // UPLOAD OF THE PAUSE BITMAP/IMAGE
     load_texture("ASSETS/Sprite_Pause.bmp", &bitmapSurface_preload, &texture_pause,&renderer);
+
+    // UPLOAD OF THE CONTROLS BITMAP/IMAGE
+    load_texture("ASSETS/Sprite_Controls.bmp", &bitmapSurface_preload, &texture_controls,&renderer);
 
 }
 
@@ -337,7 +354,14 @@ void render(){ // CAN BE CALLED ALSO draw()
     SDL_RenderDrawRect(renderer,&boundary_rect);
 
     //--------------------COMMANDS_IMAGE--------------------
+    SDL_Rect controls_dest = {
+            (int)controls.x,
+            (int)controls.y,
+            (int)controls.width,
+            (int)controls.height
+    };
 
+    SDL_RenderCopy(renderer, texture_controls, NULL, &controls_dest);
 
     if (game_is_running != PAUSE){
         //--------------------GAME_FIELD--------------------

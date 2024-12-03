@@ -9,13 +9,11 @@
 #define TRUE 1
 #define PAUSE -1
 
-#define WINDOW_WIDTH 1000
+#define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
 
 #define FPS 144
 #define FRAME_TARGET_TIME (1000 / FPS)
-
-#define SDL_TICKS_PASSED(A, B)  ((Sint32)((B) - (A)) <= 0) // RETURN 0 = FALSE OR 1 = TRUE, IF A PASSED B
 
 #define BLOCK_COLOR_SIZE 30
 #define BLOCK_SIZE 32
@@ -29,6 +27,13 @@
 #define NEXT_MOVE_TIME 50   // 0.05s
 #define LOCKING_TIME 1500   // 1.5s
 
-#define NTEXTURE 10
+#define NTEXTURESC 10
+#define NTEXTURELV 3
+
+#define MAX_FALL_MOD 0.2f
+
+// MACROS
+#define SDL_TICKS_PASSED(A, B)  ((Sint32)((B) - (A)) <= 0)    // RETURN 0 = FALSE OR 1 = TRUE, IF A PASSED B
+#define NEXT_LEVEL(N) ((Sint32)(N == 10))                     // RETURN 0 = FALSE OR 1 = TRUE, IF N EQUALS 10
 
 #endif //GAME1_CONSTANTS_H

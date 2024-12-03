@@ -12,17 +12,19 @@ SDL_Renderer *renderer = NULL;
 int last_frame_time = 0;
 
 // SURFACES
-SDL_Surface *bitmapSurface[NTEXTURE] = {NULL};
+SDL_Surface *bitmapSurface[NTEXTURESC] = {NULL};
 SDL_Surface *bitmapSurface_piece = NULL;
 SDL_Surface *bitmapSurface_preload = NULL;
 
 // TEXTURE
-SDL_Texture *texture[NTEXTURE] = {NULL};
+SDL_Texture *texture_sc[NTEXTURESC] = {NULL};
+SDL_Texture *texture_lv[NTEXTURELV] = {NULL};
 SDL_Texture *texture_stc_piece = NULL;
 SDL_Texture *texture_dyn_piece = NULL;
 SDL_Texture *texture_bg = NULL;
 SDL_Texture *texture_pause = NULL;
 SDL_Texture *texture_controls = NULL;
+SDL_Texture *texture_score = NULL;
 
 // OBJECTS
 struct block {
@@ -39,12 +41,12 @@ struct boundary {
     float height;
 }boundary;
 
-struct score_bg {
+struct s_score {
     float x;
     float y;
     float width;
     float height;
-}score_bg;
+}s_score;
 
 struct pause {
     float x;
@@ -162,18 +164,18 @@ void setup(){
     block.width = BLOCK_COLOR_SIZE;
     block.height = BLOCK_COLOR_SIZE;
 
-    score_bg.width = (BLOCK_SIZE/2)*9;  // 16px * 9 --> SCORE: 999.999.999
-    score_bg.height = (BLOCK_SIZE/2) + 4;   // 16px + 4 px for padding
-    score_bg.x = (WINDOW_WIDTH/2)+(boundary.width/2)+((WINDOW_WIDTH/2-boundary.width/2)/2)-score_bg.width/2;
-    score_bg.y = (WINDOW_HEIGHT/2)-(score_bg.height/2);
+    s_score.width = 318;        // 318 px
+    s_score.height = 400;       // 400 px
+    s_score.x = (WINDOW_WIDTH/2)+(boundary.width/2)+((WINDOW_WIDTH/2-boundary.width/2)/2)-s_score.width/2;
+    s_score.y = (WINDOW_HEIGHT/2)-(s_score.height/2);
 
     pause.width = 300;          // 300 px
     pause.height = 100;         // 100 px
     pause.x = boundary.x + 10;  // 10 px of padding
     pause.y = (WINDOW_HEIGHT/2)-(pause.height/2);
 
-    controls.width = 200;          // 200 px
-    controls.height = 272;         // 272 px
+    controls.width = 294;          // 200 px
+    controls.height = 400;         // 272 px
     controls.x = ((((WINDOW_WIDTH - boundary.width)/2) - controls.width)/2) ;  //
     controls.y = (WINDOW_HEIGHT/2)-(controls.height/2);
 
@@ -190,6 +192,9 @@ void setup(){
 
     // UPLOAD OF THE CONTROLS BITMAP/IMAGE
     load_texture("ASSETS/Sprite_Controls.bmp", &bitmapSurface_preload, &texture_controls,&renderer);
+
+    // UPLOAD OF THE CONTROLS BITMAP/IMAGE
+    load_texture("ASSETS/Sprite_Score&Level.bmp", &bitmapSurface_preload, &texture_score,&renderer);
 
 }
 
@@ -268,6 +273,12 @@ void update(){
         spawn_piece();
     }
 
+    // DECREASE THE FALLING MODIFIER MAKING THE PIECE FALL FASTER
+    if(NEXT_LEVEL(lines_to_next_level) && falling_modifier > MAX_FALL_MOD) {
+        falling_modifier -= 0.05f;
+        lines_to_next_level = 0;
+    }
+
     // CLEAR THE LINES WITH ALL 1
     line_clear();
 
@@ -291,7 +302,7 @@ void update(){
 
     // MAKES FALL PIECES EVERY 1s
     if (SDL_TICKS_PASSED(SDL_GetTicks(), falling_timeout) && !fell) {
-        falling_timeout = SDL_GetTicks() + FALLING_TIME;
+        falling_timeout = SDL_GetTicks() + (int)(FALLING_TIME * falling_modifier);
         shift(0);
         row++;
     }
@@ -431,43 +442,65 @@ void render(){ // CAN BE CALLED ALSO draw()
         SDL_RenderCopy(renderer, texture_pause, NULL, &pause_dest);
     }
 
-    //--------------------SCORE_BACKGROUND--------------------
-    SDL_Rect score_bg_rect = {
-            (int)score_bg.x,
-            (int)score_bg.y,
-            (int)score_bg.width,
-            (int)score_bg.height
+    //--------------------SCORE_SPRITE--------------------
+    SDL_Rect s_score_dest = {
+            (int)s_score.x,
+            (int)s_score.y,
+            (int)s_score.width,
+            (int)s_score.height,
     };
-    SDL_SetRenderDrawColor(renderer,255,255,255,255);
-    SDL_RenderFillRect(renderer,&score_bg_rect);
+
+    SDL_RenderCopy(renderer, texture_score, NULL, &s_score_dest);
 
     //--------------------SCORE--------------------
-    SDL_Rect dest = {
-            (int)score_bg.x,
-            (int)score_bg.y + 2,
-            16,
-            16
+    SDL_Rect score_dest = {
+            (int)s_score.x + 15,
+            (int)s_score.y + 120,
+            BLOCK_SIZE,
+            BLOCK_SIZE*2
     };
-    int length = sizeof(score) / sizeof(score[0]);
-    char filename_char[50];
+    int length_sc = sizeof(score) / sizeof(score[0]);
+    char filename_char_sc[50];
 
-    for (int i = 0; i < length; ++i) {
-        if ((int) score[i] >= '0' && (int) score[i] <= '9')
-            snprintf(filename_char, sizeof(filename_char), "BMP_FONT/Number_%c.bmp", score[i]);
-        else
-            snprintf(filename_char, sizeof(filename_char), "BMP_FONT/Letter_%c.bmp", score[i]);
+    for (int i = 0; i < length_sc; ++i) {
+        snprintf(filename_char_sc, sizeof(filename_char_sc), "BMP_FONT/Number_%c.bmp", score[i]);
 
         if (update_score) {
-            load_texture(filename_char, &bitmapSurface[i], &texture[i],&renderer);
+            load_texture(filename_char_sc, &bitmapSurface[i], &texture_sc[i], &renderer);
         }
 
         // COPY THE TEXTURE TO RENDER
-        SDL_RenderCopy(renderer, texture[i], NULL, &dest);
+        SDL_RenderCopy(renderer, texture_sc[i], NULL, &score_dest);
 
         // NEXT POSITION
-        dest.x += (BLOCK_SIZE / 2);
+        score_dest.x += (BLOCK_SIZE);
     }
     update_score = FALSE;
+
+    //--------------------LEVELS--------------------
+    SDL_Rect levels_dest = {
+            (int)s_score.x + 111,
+            (int)s_score.y + 285,
+            BLOCK_SIZE,
+            BLOCK_SIZE*2
+    };
+    int length_lv = sizeof(levels) / sizeof(levels[0]);
+    char filename_char_lv[50];
+
+    for (int i = 0; i < length_lv-1; ++i) {
+        snprintf(filename_char_lv, sizeof(filename_char_lv), "BMP_FONT/Number_%c.bmp", levels[i]);
+
+        if (update_level) {
+            load_texture(filename_char_lv, &bitmapSurface[i], &texture_lv[i], &renderer);
+        }
+
+        // COPY THE TEXTURE TO RENDER
+        SDL_RenderCopy(renderer, texture_lv[i], NULL, &levels_dest);
+
+        // NEXT POSITION
+        levels_dest.x += (BLOCK_SIZE);
+    }
+    update_level = FALSE;
 
     SDL_RenderPresent(renderer); // SWAPPING FORM BACK TO FRONT BUFFER TO PREVENT FLICKERING FRAMES
 }

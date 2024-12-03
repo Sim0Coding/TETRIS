@@ -35,6 +35,12 @@ int start_locking_timer = 1;
 char score[] = {"000000000"};
 int update_score = TRUE;
 
+float falling_modifier = 1.0f;  // x1
+int lines_to_next_level = 0;
+
+char levels[] = {"000"};
+int update_level = TRUE;
+
 // GAME CUSTOM FUNCTIONS
 void spawn_piece();
 void move();
@@ -51,6 +57,8 @@ void compact(int);
 int end_game();
 void increase_score(int);
 void load_texture(char *, SDL_Surface **, SDL_Texture **, SDL_Renderer **);
+void increase_level();
+
 #endif //TETRIS_GAMEFUNCTIONS_H
 
 
@@ -436,7 +444,7 @@ int hindered(char dir){
 /*
  * -------------------------|LINE_CLEAR|-------------------------
  *  Date of Creation:
- *  26/11/2024
+ *  03/12/2024
  *  Parameters:
 
  *  Description:
@@ -458,6 +466,8 @@ void line_clear(){
             }
             compact(i);
             increase_score(100);
+            lines_to_next_level++;
+            increase_level();
         }
     }
 }
@@ -530,13 +540,41 @@ void increase_score(int points){
 }
 
 /*
+ * --------------------------|INCREASE_LEVEL|--------------------------
+ *  Date of Creation:
+ *  03/12/2024
+ *  Parameters:
+ *  Description:
+ *  It is used to increase the level of 1.
+ */
+void increase_level(){
+    int lenght = sizeof(levels)/sizeof(levels[0]);
+    char string[lenght];
+    for (int i = 0; i < lenght; ++i) {
+        string[i] = '\000';
+    }
+    int temp_score = atoi(levels);
+    temp_score += 1;
+    itoa(temp_score,string,10);
+
+    int j = lenght-2;
+    for (int i = lenght-1; i >= 0 ; --i) {
+        if ((int)string[i] > 0) {
+            levels[j] = string[i];
+            j--;
+        }
+    }
+    update_level = TRUE;
+}
+
+/*
  * --------------------------|LOAD_TEXTURE|--------------------------
  *  Date of Creation:
  *  30/11/2024
  *  Parameters:
  *
  *  Description:
- *  It is used to upload the texture of a bitmap image.
+ *  It is used to upload the texture_sc of a bitmap image.
  */
 void load_texture(char filename[], SDL_Surface **bitmapSurface, SDL_Texture **texture, SDL_Renderer **renderer){
     // LOAD BITMAP IMAGE
@@ -549,7 +587,7 @@ void load_texture(char filename[], SDL_Surface **bitmapSurface, SDL_Texture **te
     *texture = SDL_CreateTextureFromSurface(*renderer, *bitmapSurface);
     SDL_FreeSurface(*bitmapSurface); // Surface no longer needed
     if (!*texture) {
-        printf("Unable to create texture! SDL_Error: %s\n", SDL_GetError());
+        printf("Unable to create texture_sc! SDL_Error: %s\n", SDL_GetError());
     }
 }
 

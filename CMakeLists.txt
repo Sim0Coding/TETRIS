@@ -12,6 +12,7 @@ include_directories(${SDL2_INCLUDE_DIR})
 add_executable(Tetris main.c
         constants.h
         gameFunctions.h
+        icon.rc
 )
 
 target_link_libraries(${PROJECT_NAME} ${SDL2_LIBRARY})

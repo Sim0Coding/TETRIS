@@ -1,0 +1,6 @@
+#ifndef _resource_rc
+#define _resource_rc
+
+MAIN ICON "cmake-build-debug/ASSETS/favicon16.ico"
+
+#endif

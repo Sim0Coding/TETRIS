@@ -56,6 +56,12 @@ build CMakeFiles/Tetris.dir/main.c.obj: C_COMPILER__Tetris_unscanned_Debug C$:/U
   OBJECT_DIR = CMakeFiles\Tetris.dir
   OBJECT_FILE_DIR = CMakeFiles\Tetris.dir
 
+build CMakeFiles/Tetris.dir/icon.rc.obj: RC_COMPILER__Tetris_unscanned_Debug C$:/Users/Simone/CLionProjects/Games/Tetris_v3/icon.rc || cmake_object_order_depends_target_Tetris
+  DEP_FILE = CMakeFiles\Tetris.dir\icon.rc.obj.d
+  INCLUDES = -I C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/include/SDL2
+  OBJECT_DIR = CMakeFiles\Tetris.dir
+  OBJECT_FILE_DIR = CMakeFiles\Tetris.dir
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target Tetris
@@ -64,7 +70,7 @@ build CMakeFiles/Tetris.dir/main.c.obj: C_COMPILER__Tetris_unscanned_Debug C$:/U
 #############################################
 # Link the executable Tetris.exe
 
-build Tetris.exe: C_EXECUTABLE_LINKER__Tetris_Debug CMakeFiles/Tetris.dir/main.c.obj | C$:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a C$:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2.dll.a
+build Tetris.exe: C_EXECUTABLE_LINKER__Tetris_Debug CMakeFiles/Tetris.dir/main.c.obj CMakeFiles/Tetris.dir/icon.rc.obj | C$:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a C$:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2.dll.a
   FLAGS = -g
   LINK_LIBRARIES = -lmingw32  -mwindows  C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2main.a  C:/Users/Simone/SDL2-devel-2.30.9-mingw/SDL2-2.30.9/x86_64-w64-mingw32/lib/libSDL2.dll.a  -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\Tetris.dir

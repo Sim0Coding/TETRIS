@@ -118,6 +118,16 @@ int initialize_window(){
         fprintf(stderr,"Error initializing SDL.\n");
         return FALSE;
     }
+
+    // LOAD THE ICON IMAGE OF THE WINDOW
+    char filename_Icon[] = {"ASSETS/Sprite_Window_Icon.bmp"};
+    bitmapSurface_preload = SDL_LoadBMP(filename_Icon);
+    if (!bitmapSurface_preload) {
+        printf("Unable to load bitmap! SDL_Error: %s\n", SDL_GetError());
+    }
+    SDL_SetWindowIcon(window,bitmapSurface_preload);
+    SDL_FreeSurface(bitmapSurface_preload); // Surface no longer needed
+
     renderer = SDL_CreateRenderer(          // SHOW THE WINDOW
             window,                         // WINDOW
             -1,                       // DISPLAY DRIVER [-1 is the default]
@@ -330,7 +340,7 @@ void update(){
  *  Date of Creation:
  *  17/11/2024
  *  Modified:
- *  30/11/2024
+ *  06/11/2024
  *  Parameters:
  *
  *  Description:
@@ -374,65 +384,66 @@ void render(){ // CAN BE CALLED ALSO draw()
 
     SDL_RenderCopy(renderer, texture_controls, NULL, &controls_dest);
 
-    if (game_is_running != PAUSE){
-        //--------------------GAME_FIELD--------------------
-        SDL_Rect block_rect = {
-                (int) block.x,
-                (int) block.y,
-                (int) block.width,
-                (int) block.height
-        };
+    //--------------------GAME_FIELD--------------------
+    SDL_Rect block_rect = {
+            (int) block.x,
+            (int) block.y,
+            (int) block.width,
+            (int) block.height
+    };
 
-        char filename_piece[50];
+    char filename_piece[50];
 
-        // RENDER DYNAMIC FIELD PIECES
-        for (int i = 0; i < NROW; ++i) {
-            for (int j = 0; j < NCOL; ++j) {
+    // RENDER DYNAMIC FIELD PIECES
+    for (int i = 0; i < NROW; ++i) {
+        for (int j = 0; j < NCOL; ++j) {
 
-                snprintf(filename_piece, sizeof(filename_piece), "ASSETS/Sprite_%d.bmp", piece_num);
+            snprintf(filename_piece, sizeof(filename_piece), "ASSETS/Sprite_%d.bmp", piece_num);
 
-                if (update_dynamic_sprite) {
+            if (update_dynamic_sprite) {
 
-                    load_texture(filename_piece, &bitmapSurface_piece, &texture_dyn_piece,&renderer);
-                    update_dynamic_sprite = FALSE;
-                }
-
-                if (dynamic_field[i][j] == 1) {
-                    // COPY THE TEXTURE TO RENDER
-                    SDL_RenderCopy(renderer, texture_dyn_piece, NULL, &block_rect);
-                }
-                block_rect.x += BLOCK_SIZE;
+                load_texture(filename_piece, &bitmapSurface_piece, &texture_dyn_piece,&renderer);
+                update_dynamic_sprite = FALSE;
             }
-            // UPDATE THE COORDINATES
-            block_rect.x = (int) boundary.x;
-            block_rect.y += BLOCK_SIZE;
-        }
-        // RESET THE COORDINATE
-        block_rect.x = (int) block.x;
-        block_rect.y = (int) block.y;
 
-        // RENDER STATIC FIELD PIECES
-
-        for (int i = 0; i < NROW; ++i) {
-            for (int j = 0; j < NCOL; ++j) {
-
-                if (update_static_sprite) {
-
-                    load_texture("ASSETS/Sprite_Base.bmp", &bitmapSurface_piece, &texture_stc_piece,&renderer);
-                    update_static_sprite = FALSE;
-                }
-
-                if (static_field[i][j] == 1) {
-                    // COPY THE TEXTURE TO RENDER
-                    SDL_RenderCopy(renderer, texture_stc_piece, NULL, &block_rect);
-                }
-                block_rect.x += BLOCK_SIZE;
+            if (dynamic_field[i][j] == 1) {
+                // COPY THE TEXTURE TO RENDER
+                SDL_RenderCopy(renderer, texture_dyn_piece, NULL, &block_rect);
             }
-            // UPDATE THE COORDINATES
-            block_rect.x = (int) boundary.x;
-            block_rect.y += BLOCK_SIZE;
+            block_rect.x += BLOCK_SIZE;
         }
-    }else{
+        // UPDATE THE COORDINATES
+        block_rect.x = (int) boundary.x;
+        block_rect.y += BLOCK_SIZE;
+    }
+    // RESET THE COORDINATE
+    block_rect.x = (int) block.x;
+    block_rect.y = (int) block.y;
+
+    // RENDER STATIC FIELD PIECES
+
+    for (int i = 0; i < NROW; ++i) {
+        for (int j = 0; j < NCOL; ++j) {
+
+            if (update_static_sprite) {
+
+                load_texture("ASSETS/Sprite_Base.bmp", &bitmapSurface_piece, &texture_stc_piece,&renderer);
+                update_static_sprite = FALSE;
+            }
+
+            if (static_field[i][j] == 1) {
+                // COPY THE TEXTURE TO RENDER
+                SDL_RenderCopy(renderer, texture_stc_piece, NULL, &block_rect);
+            }
+            block_rect.x += BLOCK_SIZE;
+        }
+        // UPDATE THE COORDINATES
+        block_rect.x = (int) boundary.x;
+        block_rect.y += BLOCK_SIZE;
+    }
+
+    //--------------------PAUSE_TEXT--------------------
+    if (game_is_running == PAUSE){
         SDL_Rect pause_dest = {
                 (int)pause.x,
                 (int)pause.y,
